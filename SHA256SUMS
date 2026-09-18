@@ -1,0 +1,6 @@
+474d189af9d60a1392e9cb1dfb3095f15fabfe231caa0ae0b8de4ed0aa68492b  bin/salcara-image-darwin-amd64
+1b10d7a7e5c6a1fd4249547d30f1f98cf13d593f9666952426240447a3dc1f2a  bin/salcara-image-darwin-arm64
+56b535f44842c30701c4c1ed910131a5932cd0f98157a4b493f8356c3533cfcb  bin/salcara-image-linux-amd64
+0dae6c6652e5129c66fde8fb7aaffa391dff9f2617491dac384615ff43ace76f  bin/salcara-image-linux-arm64
+5f317182ee2e83fbb555d3f7d53956d23c58cd6ffec3187df9e2e3da6f92912b  bin/salcara-image-windows-amd64.exe
+5f5c0f1c330d490a434b2b1664d6e5f058cea4e1e676ac9211090be0762f710d  bin/salcara-image-windows-arm64.exe

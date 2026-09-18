@@ -1,0 +1,5 @@
+interface:
+  display_name: "Salcara Image"
+  short_description: "通过 Salcara 安全生成、编辑和批量制作图片"
+  default_prompt: "Use $salcara-image to generate or edit an image through Salcara."
+

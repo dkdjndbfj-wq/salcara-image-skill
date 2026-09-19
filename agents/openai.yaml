@@ -1,5 +1,4 @@
 interface:
   display_name: "Salcara Image"
   short_description: "通过 Salcara 安全生成、编辑和批量制作图片"
-  default_prompt: "Use $salcara-image to generate or edit an image through Salcara."
-
+  default_prompt: "Use $salcara-image. If this is the first run, first confirm installation and ask me for the API endpoint, API key, default model, and default image quality while listing every available model and quality choice."

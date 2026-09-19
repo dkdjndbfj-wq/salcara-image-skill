@@ -51,14 +51,32 @@ Use the binary matching the current OS and CPU:
 
 Run the binary from this skill directory or use its absolute path. Read `references/models-and-parameters.md` when choosing a model, quality, size, format, or transparent background. Read `references/batch-format.md` for JSONL batch work.
 
+## Mandatory paid-request gate
+
+Treat every `generate` call, every `edit` call, every batch job, and every retry or iterative revision as a paid operation. Never send a paid request immediately after receiving an image description.
+
+Before each paid request:
+
+1. Finalize the prompt and inspect any reference images or masks. Decide the operation, model, quality, size, image count, background, and output format. Use one image unless the user explicitly requests more.
+2. Show a concise preflight summary in the user's language. Include at least:
+   - operation: generation or edit;
+   - final visual goal or prompt summary;
+   - model and quality;
+   - size and image count;
+   - number of paid API requests or batch jobs;
+   - a clear warning that confirmation will incur charges.
+3. Ask “确认生成吗？” and wait for explicit confirmation of that exact summary. The initial image request is not confirmation of an unseen summary. A confirmation authorizes only the summarized request; changed parameters, retries, regenerations, edits, or follow-up iterations require a new summary and confirmation.
+
+`models`, `configure --show`, and `--dry-run` do not create images and may run before confirmation. A fixed batch may use one confirmation only after showing the exact job count, total requested images, and shared/default parameters. Never automatically retry an uncertain or failed request, and never automatically iterate after inspecting an imperfect result. Explain the issue, propose the next paid request, and ask again.
+
 ## Workflow
 
 1. Check configuration with `configure --show`. If no key is configured, perform the required post-install handoff above before any image request.
 2. Clarify only choices that materially affect the requested result. Otherwise infer a reasonable prompt and make one image.
 3. Do not ask the user to choose a model or quality on every request. Omit both `--model` and `--quality` so the CLI automatically uses the defaults selected during setup. Override either value only when the user explicitly asks or the requested capability requires it; a command-line override applies only to that request and does not change saved defaults.
-4. For a batch or `high`/`xhigh`/`max` request, run `--dry-run` first and summarize the intended number of requests.
-5. Generate or edit the image. Keep `--max-attempts 1` unless the user knowingly accepts possible duplicate billing.
-6. Inspect every produced image with the local image-viewing tool. Check composition, text, transparency, and requested constraints. Iterate only when needed.
+4. Run `--dry-run` before a batch or a `high`/`xhigh`/`max` request. Complete the mandatory paid-request gate and wait for confirmation.
+5. Generate or edit the image with `--max-attempts 1`.
+6. Inspect every produced image with the local image-viewing tool. Check composition, text, transparency, and requested constraints. Do not iterate without a new paid-request confirmation.
 7. Return the absolute output paths and mention the model, size, and quality used.
 
 ## Conversational model and quality changes

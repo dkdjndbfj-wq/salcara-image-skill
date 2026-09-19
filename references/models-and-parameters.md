@@ -33,5 +33,5 @@ Supported common values are `1024x1024`, `1536x1024`, `1024x1536`, and `auto`. G
 
 ## Request safety
 
-- Keep `--max-attempts 1` unless duplicate image generation is acceptable.
+- Use `--max-attempts 3`: one initial attempt plus at most two retries while no usable image has been received. Stop after three total attempts, on a non-retryable error, or as soon as an image item is received.
 - Use `--dry-run` before a large batch.

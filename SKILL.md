@@ -36,7 +36,7 @@ If `configure --show` reports an existing key, do not ask for it again. Confirm 
 - The wizard asks for the API URL and key, fetches `/v1/models`, and lists model and quality choices. After setup succeeds, the skill is ready immediately; no Codex restart is needed.
 - The default public URL is `https://salcara.top`. Salcara customers must use a Salcara-issued downstream key, never the operator's upstream key.
 - The wizard stores the key in the current user's configuration directory with user-only permissions where the OS supports them. Environment variables `SALCARA_API_URL` and `SALCARA_API_KEY` may be used instead and take precedence.
-- Prefer one attempt. Retrying an uncertain paid request can create and bill a duplicate image.
+- For paid calls, allow one initial attempt plus at most two automatic retries only while no usable image has been received. Stop after three total attempts.
 
 ## Choose the binary
 
@@ -61,10 +61,10 @@ Before each paid request, silently verify all of the following:
 2. The operation is correct: generation versus edit, with the intended reference images and mask attached.
 3. The model and quality use the saved defaults unless the conversation overrides them, and the combination is compatible.
 4. Size, aspect ratio, background, and output format fit the request. Transparent output must use PNG or WebP.
-5. Image count and paid request count are correct. Default to exactly one image and one request unless the user explicitly asks for more or for a batch.
+5. Image count and paid operation count are correct. Default to exactly one image and one logical operation unless the user explicitly asks for more or for a batch; that operation may use at most three attempts only when no image is received.
 6. The output path will not overwrite an existing file unless the user requested replacement.
 
-Ask a question only when missing information materially changes the image or paid scope; otherwise choose the safest reasonable value and proceed. Run `--dry-run` for a batch and for `high`/`xhigh`/`max` to catch mistakes before the paid call, but do not show a confirmation prompt. Never automatically retry an uncertain or failed request, and never automatically regenerate or iterate after inspecting an imperfect result. Report the result or problem and wait for a new user instruction before another paid call.
+Ask a question only when missing information materially changes the image or paid scope; otherwise choose the safest reasonable value and proceed. Run `--dry-run` for a batch and for `high`/`xhigh`/`max` to catch mistakes before the paid call, but do not show a confirmation prompt. Use `--max-attempts 3`: one initial attempt plus at most two automatic retries for retryable transport, rate-limit, or server failures while no usable image has been received. Stop immediately after an image item is received, after a non-retryable authentication/validation error, or after three total attempts. If three attempts produce no image, pause and report the sanitized error; do not start a fourth attempt. Never automatically regenerate or iterate merely because the received image is imperfect.
 
 ## Workflow
 
@@ -72,7 +72,7 @@ Ask a question only when missing information materially changes the image or pai
 2. Clarify only choices that materially affect the requested result. Otherwise infer a reasonable prompt and make one image.
 3. Do not ask the user to choose a model or quality on every request. Omit both `--model` and `--quality` so the CLI automatically uses the defaults selected during setup. Override either value only when the user explicitly asks or the requested capability requires it; a command-line override applies only to that request and does not change saved defaults.
 4. Run `--dry-run` before a batch or a `high`/`xhigh`/`max` request, then complete the mandatory paid-request self-check internally.
-5. Generate or edit the image with `--max-attempts 1`.
+5. Generate or edit the image with `--max-attempts 3`; this is a strict ceiling of one initial attempt plus two retries.
 6. Inspect every produced image with the local image-viewing tool. Check composition, text, transparency, and requested constraints. Do not iterate without a new user instruction.
 7. Return the absolute output paths and mention the model, size, and quality used.
 
@@ -85,6 +85,20 @@ Users can change the model or quality in ordinary conversation after setup; neve
 - If the user simply says “改成……” while requesting an image and does not say “默认”“以后” or “记住”, treat it as a one-request override and mention that the saved defaults were not changed.
 - Enforce model compatibility: `gpt-image-2` accepts only `auto`, `low`, `medium`, and `high`; GPT Image 2.5 models may also use `xhigh` and `max`. If a combination is invalid, list the valid qualities and ask the user to choose.
 - After a persistent change, confirm the new default model and quality without displaying the API key.
+
+## Text-heavy images and deterministic typography
+
+Do not ask the image model to render a large amount of exact text. Treat posters, menus, flyers, covers, price lists, infographics, schedules, contact details, and any design with several text blocks or exact spelling as text-heavy.
+
+For text-heavy work:
+
+1. Preserve the user's exact copy separately. Do not paraphrase names, prices, dates, contact details, or required wording unless asked.
+2. Before the paid image request, create an internal layout specification: canvas size, text regions, alignment, safe margins, hierarchy, intended font feel, colors, maximum lines, and the visual area that must remain unobstructed.
+3. Generate only the visual background or illustration. Tell the image model to include no words, letters, numbers, logos, captions, pseudo-text, or watermark, and to reserve clean negative space at the planned positions. Do not use visible placeholder text.
+4. After receiving and inspecting the base image, add the exact text with deterministic local typography such as SVG, HTML/canvas, Sharp, ImageMagick, or another available non-generative renderer. This local typography pass is not another Salcara image request.
+5. Check spelling, line breaks, contrast, alignment, safe margins, clipping, and readability at actual output size. Adjust the local layout without regenerating the base image whenever possible.
+
+For a single short decorative headline, the image model may render it only when exact typography is not important. When in doubt, use the two-stage background-plus-local-typesetting workflow.
 
 ## Generate
 

@@ -88,17 +88,22 @@ Users can change the model or quality in ordinary conversation after setup; neve
 
 ## Text-heavy images and deterministic typography
 
-Do not ask the image model to render a large amount of exact text. Treat posters, menus, flyers, covers, price lists, infographics, schedules, contact details, and any design with several text blocks or exact spelling as text-heavy.
+Image models can turn dense or exact text into misspellings, garbled characters, or convincing-looking pseudo-text. To prevent that failure, do not ask the image model to render a large amount of exact informational text. First separate text into two classes:
+
+- **Artistic text:** a short title, logo-like wordmark, or decorative slogan whose letterforms are part of the illustration. The image model may render this when the user wants that integrated visual treatment.
+- **Exact layout text:** body copy, multiple lines, prices, dates, schedules, contact details, tables, disclaimers, or anything where wording and typography must be reliable. Add this after generation with deterministic local typesetting.
+
+Posters, menus, flyers, covers, price lists, infographics, and similar work may use both classes in the same image.
 
 For text-heavy work:
 
-1. Preserve the user's exact copy separately. Do not paraphrase names, prices, dates, contact details, or required wording unless asked.
-2. Before the paid image request, create an internal layout specification: canvas size, text regions, alignment, safe margins, hierarchy, intended font feel, colors, maximum lines, and the visual area that must remain unobstructed.
-3. Generate only the visual background or illustration. Tell the image model to include no words, letters, numbers, logos, captions, pseudo-text, or watermark, and to reserve clean negative space at the planned positions. Do not use visible placeholder text.
-4. After receiving and inspecting the base image, add the exact text with deterministic local typography such as SVG, HTML/canvas, Sharp, ImageMagick, or another available non-generative renderer. This local typography pass is not another Salcara image request.
-5. Check spelling, line breaks, contrast, alignment, safe margins, clipping, and readability at actual output size. Adjust the local layout without regenerating the base image whenever possible.
+1. Preserve the user's exact copy separately. Do not paraphrase names, prices, dates, contact details, or required wording unless asked. Mark which short phrase, if any, should be artistic text.
+2. Before the paid image request, create an internal layout specification: canvas size, artistic-text region, exact-text regions, alignment, safe margins, hierarchy, intended font feel, colors, maximum lines, and the visual area that must remain unobstructed.
+3. Generate the visual background or illustration and, when requested, only the specifically named artistic text. Tell the model to reserve clean negative space for later exact text and to include no other words, captions, pseudo-text, random letters, or watermark. Do not use visible placeholder text.
+4. After receiving and inspecting the base image, add all exact layout text with deterministic local typography such as SVG, HTML/canvas, Sharp, ImageMagick, or another available non-generative renderer. This local typography pass is not another Salcara image request.
+5. Check artistic text for spelling and composition, then check local text for spelling, line breaks, contrast, alignment, safe margins, clipping, and readability at actual output size. Adjust the local layout without regenerating the base image whenever possible. Do not automatically pay for a regeneration when artistic text is wrong; use a local correction when feasible or wait for a new user instruction.
 
-For a single short decorative headline, the image model may render it only when exact typography is not important. When in doubt, use the two-stage background-plus-local-typesetting workflow.
+For text-heavy designs, the normal result is therefore a hybrid: model-rendered artwork plus optional artistic lettering, followed by locally typeset informational text.
 
 ## Generate
 
